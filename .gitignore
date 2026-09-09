@@ -1,0 +1,6 @@
+node_modules/
+release/
+*.zip
+__pycache__/
+.env
+.DS_Store

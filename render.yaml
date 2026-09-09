@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: iron-tide-rooms
+    runtime: node
+    buildCommand: node --version
+    startCommand: node server/server.cjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: MAX_ROOMS
+        value: "24"

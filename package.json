@@ -1,0 +1,13 @@
+{
+  "name": "iron-tide-fleet-command",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Offline naval action game and authoritative co-op room server",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/server.cjs",
+    "test": "node --test tests/engine.test.cjs tests/renderer.test.cjs tests/server.test.cjs",
+    "test:campaign": "node tests/campaign-simulation.cjs",
+    "build": "python3 tools/build_release.py"
+  }
+}
