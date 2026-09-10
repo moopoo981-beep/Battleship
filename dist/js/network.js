@@ -1,0 +1,25 @@
+(function(root){
+'use strict';
+class RoomClient{
+ constructor(){this.base='';this.token=null;this.playerId=null;this.code=null;this.abort=null;this.onFrame=()=>{};this.onStatus=()=>{};this.onNotice=()=>{};this.closed=true;this.actions=[];this.sending=false;this.status='offline';this.generation=0;}
+ setBase(value){const u=new URL(String(value||location.origin));if(!['http:','https:'].includes(u.protocol))throw Error('ใส่ URL เซิร์ฟเวอร์ http:// หรือ https://');if(location.protocol==='https:'&&u.protocol!=='https:')throw Error('หน้าเกม HTTPS ต้องเชื่อมกับเซิร์ฟเวอร์ HTTPS');if(u.username||u.password)throw Error('URL เซิร์ฟเวอร์ไม่ควรมีชื่อผู้ใช้หรือรหัสผ่าน');this.base=u.origin+u.pathname.replace(/\/$/,'');return this.base;}
+ async request(route,body,auth=true){const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);try{const headers={};if(body!==undefined)headers['Content-Type']='application/json';if(auth&&this.token)headers.Authorization='Bearer '+this.token;const res=await fetch(this.base+route,{method:body===undefined?'GET':'POST',headers,body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});let data;try{data=await res.json();}catch(e){throw Error('เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง ตรวจ URL อีกครั้ง');}if(!res.ok)throw Error(data.error||'เชื่อมต่อไม่สำเร็จ');return data;}catch(e){if(e.name==='AbortError')throw Error('เซิร์ฟเวอร์ไม่ตอบรับ ลองเชื่อมต่ออีกครั้ง');if(e instanceof TypeError)throw Error('เชื่อมต่อไม่ได้ ตรวจ URL / HTTPS และเปิดเซิร์ฟเวอร์ก่อน');throw e;}finally{clearTimeout(timeout);}}
+ async health(){return this.request('/api/health',undefined,false);}
+ async rooms(){return (await this.request('/api/rooms',undefined,false)).rooms;}
+ async create(options){const data=await this.request('/api/rooms',options,false);this.attach(data);return data;}
+ async join(code,pilot){const data=await this.request('/api/rooms/'+String(code).toUpperCase().trim()+'/join',{pilot},false);this.attach(data);return data;}
+ attach(data){this.disconnect(false);this.closed=false;this.token=data.token;this.playerId=data.playerId;this.code=data.room.code;try{sessionStorage.setItem('iron-tide-room-v2',JSON.stringify({base:this.base,token:this.token,playerId:this.playerId,code:this.code}));}catch(e){}this.connect();}
+ async reconnectStored(){let p;try{p=JSON.parse(sessionStorage.getItem('iron-tide-room-v2'));}catch(e){}if(!p?.token)return false;this.setBase(p.base);this.token=p.token;this.playerId=p.playerId;this.code=p.code;this.closed=false;this.connect();return true;}
+ async connect(){const generation=this.generation;let attempt=0;while(!this.closed&&generation===this.generation){this.status=attempt?'reconnecting':'connecting';this.onStatus(this.status);this.abort=new AbortController();try{
+   const res=await fetch(this.base+'/api/rooms/'+this.code+'/stream',{headers:{Authorization:'Bearer '+this.token},signal:this.abort.signal});if(!res.ok){let data;try{data=await res.json();}catch(e){}if([401,404].includes(res.status)){this.closed=true;try{sessionStorage.removeItem('iron-tide-room-v2');}catch(e){}throw Error(data?.error||'ห้องถูกปิดแล้ว');}throw Error(data?.error||'การเชื่อมต่อถูกขัดจังหวะ');}
+   const reader=res.body.getReader(),decoder=new TextDecoder();let buffer='';this.status='online';this.onStatus('online');attempt=0;
+   while(!this.closed&&generation===this.generation){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});let at;while((at=buffer.indexOf('\n\n'))>=0){const chunk=buffer.slice(0,at);buffer=buffer.slice(at+2);const line=chunk.split('\n').find(s=>s.startsWith('data: '));if(line){const data=JSON.parse(line.slice(6));this.onFrame(data);}}if(buffer.length>2000000)throw Error('ข้อมูลเครือข่ายมากเกินไป');}
+  }catch(e){if(e.name!=='AbortError')this.onNotice(e.message);}if(this.closed||generation!==this.generation)break;this.status='reconnecting';this.onStatus(this.status);attempt++;await new Promise(resolve=>setTimeout(resolve,Math.min(5000,500*attempt)));}if(generation===this.generation){this.status='offline';this.onStatus('offline');}}
+ async roomAction(op,data={}){return this.request('/api/rooms/'+this.code+'/'+op,data);}
+ queue(action,targetId){if(this.actions.some(x=>x.action===action&&x.targetId===targetId))return;if(this.actions.length<8)this.actions.push({action,targetId});}
+ async send(input,aim){if(this.sending||this.closed||this.status!=='online')return;this.sending=true;const actions=this.actions.splice(0,8);try{const result=await this.roomAction('command',{input,aim,actions});if(result.errors?.length)this.onNotice(result.errors[0]);}catch(e){this.onNotice(e.message);}finally{this.sending=false;}}
+ async leave(){try{if(!this.closed)await this.roomAction('leave');}catch(e){}this.disconnect(true);}
+ disconnect(clear=true){this.generation++;this.closed=true;this.abort?.abort();this.actions=[];this.status='offline';if(clear){this.token=null;this.code=null;this.playerId=null;try{sessionStorage.removeItem('iron-tide-room-v2');}catch(e){}}}
+}
+root.IronTideNetwork=RoomClient;
+})(window);
