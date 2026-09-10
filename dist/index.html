@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="th">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#081b27"><meta name="description" content="IRON TIDE 2 เกมขับเรือรบ 3D เล่นคนเดียวหรือ Co-op พร้อมอัปเกรดเรือ"><title>IRON TIDE 2 — Fleet Command</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div id="app">
+<header class="topbar"><div class="brand"><span class="brand-icon">◈</span><div>IRON TIDE <em>II</em><small>FLEET COMMAND / ยุทธนาวีใต้โดม</small></div></div><div class="mission-top"><span id="mission-label">OPERATION 01 / 03</span><strong id="mission-name">เงาในมหาสมุทร</strong></div><div class="top-actions"><span id="connection-status">SOLO</span><button id="pause-btn">Ⅱ เมนู</button><button id="sound-btn" aria-pressed="true">เสียง</button><button id="help-btn">วิธีเล่น</button></div></header>
+<main class="command-layout">
+<section class="battlefield" aria-label="สนามรบสามมิติ"><canvas id="world" aria-label="สนามรบ คลิกเพื่อเล็ง ลากเพื่อหมุนกล้อง"></canvas><canvas id="overlay" aria-hidden="true"></canvas>
+<div class="sector-tag"><span class="eyebrow">PACIFIC EXCLUSION ZONE / 36 × 36</span><b id="stage-state">เตรียมปฏิบัติการ</b></div>
+<div class="world-tools"><button id="camera-btn">กล้อง: ตามเรือ</button><button id="grid-btn" aria-pressed="false">ตาราง</button><button id="quality-btn">ภาพ: สูง</button></div>
+<div class="objective-strip"><span class="objective-dot"></span><span id="objective">ค้นหาและกำจัดข้าศึก</span><b id="timer">11:00</b></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div class="helm-panel"><span id="my-ship-name">VALOR</span><strong id="speed-value">0.0 <small>kn</small></strong><div class="throttle-track"><i id="throttle-fill"></i></div><small id="helm-status">คันเร่ง 0% · W/S ปรับความเร็ว</small><span class="helm-hint">A / D เลี้ยว · B หยุดเครื่อง</span></div>
+<div class="target-label"><label for="coord-input">พิกัด</label><input id="coord-input" value="S22" maxlength="4" aria-label="พิกัดเป้าหมาย A1 ถึง AJ36"><button id="set-coord">เล็ง</button><span id="target-status">เลือกเป้าหมาย</span></div>
+<div class="touch-helm" aria-label="บังคับเรือด้วยปุ่มสัมผัส"><button data-drive="up" aria-label="เพิ่มคันเร่ง">W ↑</button><div><button data-drive="left" aria-label="เลี้ยวซ้าย">A ←</button><button data-drive="down" aria-label="ลดคันเร่ง">S ↓</button><button data-drive="right" aria-label="เลี้ยวขวา">D →</button></div></div>
+<div class="action-dock" id="action-dock"></div>
+</section>
+<aside class="command-panel">
+<section class="panel-block radar-block"><div class="panel-title"><h2>แผนที่ยุทธวิธี</h2><span id="contact-count">0 CONTACTS</span></div><canvas id="radar" width="400" height="400" aria-label="แผนที่ยุทธวิธี คลิกเลือกเป้าหมาย"></canvas><div class="radar-key"><span><i class="cyan"></i>พันธมิตร</span><span><i class="red"></i>ศัตรู</span><span><i class="amber"></i>พิกัดเก่า</span></div></section>
+<section class="panel-block"><div class="panel-title"><h2>เป้าที่ล็อกไว้</h2><span id="lock-count">0 / 2</span></div><div id="lock-list"></div><div class="small-actions"><button id="lock-btn">L ล็อกเป้าที่เล็ง</button><button id="clear-locks">ปลดทั้งหมด</button></div></section>
+<section class="panel-block fleet-block"><div class="panel-title"><h2>กองเรือพันธมิตร</h2><span id="fleet-status">4 VESSELS</span></div><div id="fleet-list"></div></section>
+<section class="panel-block log-block"><div class="panel-title"><h2>วิทยุสื่อสาร</h2><span class="live-text">LIVE</span></div><div id="radio-log"></div></section>
+</aside>
+</main>
+<footer><span>IRON TIDE <b>2.0</b></span><span id="status-line">รอคำสั่ง</span><span>WASD ขับเรือ · G ปืน · M จรวด · T ตอร์ปิโด · L ล็อก</span></footer>
+</div>
+<div id="modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div id="modal-card" class="modal-card"></div></div>
+<noscript>เปิด JavaScript เพื่อเล่นเกม</noscript>
+<script src="config.js"></script><script src="js/engine.js"></script><script src="js/renderer.js"></script><script src="js/audio.js"></script><script src="js/network.js"></script><script src="js/game.js"></script>
+</body></html>
